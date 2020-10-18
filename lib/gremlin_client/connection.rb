@@ -38,6 +38,7 @@ module GremlinClient
       timeout: 10,
       gremlin_script_path: '.',
       secure: false,
+      headers: nil,
       autoconnect: true
     )
       @host = host
@@ -48,6 +49,7 @@ module GremlinClient
       @gremlin_script_path = gremlin_script_path
       @gremlin_script_path = Pathname.new(@gremlin_script_path) unless @gremlin_script_path.is_a?(Pathname)
       @secure = secure
+      @headers = headers
       @autoconnect = autoconnect
       connect if @autoconnect
     end
@@ -56,7 +58,9 @@ module GremlinClient
     def connect
       gremlin = self
       protocol = @secure ? "wss" : "ws"
-      WebSocket::Client::Simple.connect("#{protocol}://#{@host}:#{@port}#{@path}") do |ws|
+      url = "#{protocol}://#{@host}:#{@port}#{@path}"
+      args = @headers ? [url, { headers: @headers }] : [url]
+      WebSocket::Client::Simple.connect(*args) do |ws|
         @ws = ws
 
         @ws.on :message do |msg|
